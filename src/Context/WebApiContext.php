@@ -379,4 +379,38 @@ class WebApiContext implements ApiClientAwareContext
 
         return $this->client;
     }
+
+    /**
+     * Checks if the first element in a multiple-result JSON response with key
+     * $key contains *at least* the provided properties and values.
+     *
+     * @param string $key
+     * @param PyStringNode $jsonString
+     *
+     * @throws \RuntimeException
+     *
+     * @Then the :key result should have an element with attributes:
+     */
+    public function theResultShouldHaveAnElementWithAttributes($key, PyStringNode $jsonString)
+    {
+        $etalon = json_decode($this->replacePlaceHolder($jsonString->getRaw()), true);
+        $actual = $this->response->json();
+xdebug_break();
+        if (null === $etalon) {
+            throw new \RuntimeException(
+              "Can not convert etalon to json:\n" . $this->replacePlaceHolder($jsonString->getRaw())
+            );
+        }
+
+        Assertions::assertArrayHasKey($key, $actual);
+        $first_el = $actual[$key][0];
+
+        Assertions::assertGreaterThanOrEqual(count($etalon), count($first_el));
+        foreach ($etalon as $key => $needle) {
+            Assertions::assertArrayHasKey($key, $first_el);
+            Assertions::assertEquals($etalon[$key], $first_el[$key]);
+        }
+
+    }
+
 }
