@@ -389,20 +389,24 @@ class WebApiContext implements ApiClientAwareContext
      *
      * @throws \RuntimeException
      *
-     * @Then the :key result should have an element with attributes:
+     * @Then the first element in the :arg1 result should contain attributes:
      */
-    public function theResultShouldHaveAnElementWithAttributes($key, PyStringNode $jsonString)
+    public function theFirstElementInTheResultShouldContainAttributes($key, PyStringNode $jsonString)
     {
+        // étalon is the name for decoded JSON, according to @stof :)
         $etalon = json_decode($this->replacePlaceHolder($jsonString->getRaw()), true);
         $actual = $this->response->json();
-xdebug_break();
+
         if (null === $etalon) {
             throw new \RuntimeException(
-              "Can not convert etalon to json:\n" . $this->replacePlaceHolder($jsonString->getRaw())
+                "Can not convert etalon to json:\n" . $this->replacePlaceHolder($jsonString->getRaw())
             );
         }
 
+        // response object should have our key
+        // & that key's value should contain at least one element
         Assertions::assertArrayHasKey($key, $actual);
+        Assertions::assertGreaterThanOrEqual(1, count($actual));
         $first_el = $actual[$key][0];
 
         Assertions::assertGreaterThanOrEqual(count($etalon), count($first_el));
